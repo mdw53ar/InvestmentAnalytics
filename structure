@@ -1,0 +1,45 @@
+Create an App where the user can pass its name, last name, a series of stocks (incl. tickers)
+as well as the amount invested and holding period. The App will export a PDF with a chart
+comparing the selected portfolio to a benchmark (S&P500) and the equal weighted portfolio
+The PDF will contain a table with info about mean return, ROI, STD and profit/loss
+
+Investor:
+        first_name
+        last_name
+
+Stock:
+        ticker
+        name_stock
+        amount_invested
+        start "yyyy-mm-dd" format
+        end: "yyyy-mm-dd" format
+        data
+
+        graph(): lineplot
+        all_returns_table()
+        returns(): yearly and monthly
+        roi(): return on investment
+        profit()
+        risk(): yearly and monthly
+        sharpe(): sharpe ratio
+        performance_report()
+
+Portfolio:
+        list[Stock]
+        timeframe: should be equal for all stocks. One timeframe for whole portfolio
+        ticker_benchmark: per default S&P500
+
+        all_returns_table() all stocks returns
+        portfolio_
+
+        return(): yearly and monthly
+        return_on_investment()
+        risk(): yearly and monthly
+        sharpe(): sharpe ratio
+        optimal_weights(): optimal weights for portfolio and timeframe
+        graph(): linechart comparing daily returns of portfolio and benchmark and equal weighted portfolio
+        performance(): performance table with KPIs for portfolio, benchmark and equal weighted portfolio, and optimal portfolio
+
+PDF_Generator:
+        filename
+        generate_report(): should open automatically
