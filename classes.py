@@ -102,6 +102,7 @@ class Stock:
         """
         ROI in percent
         """
+
         roi = (adj_close[-1]-adj_close[0])/(adj_close[0])
         roi = round(100 * roi, 3)
         return roi
@@ -110,6 +111,7 @@ class Stock:
         """
         returns the (monetary) profit
         """
+
         return amount * self.roi(adj_close = adj_close)/100
 
     def risk(self, daily_return, yearly=True):
@@ -117,6 +119,7 @@ class Stock:
         returns the risk measured as the standard deviation of the returns
         yearly or daily returns
         """
+
         daily_std = round(100 * daily_return.std(), 3)
         yearly_std = round(daily_std * np.sqrt(252), 3)
 
@@ -130,6 +133,7 @@ class Stock:
         returns the Sharpe Ratio expressed as:
         (return-risk_free_rate)/std
         """
+
         volatility = self.risk(daily_return, yearly=True)
         return_ = self.returns(daily_return, yearly=True)
         sharpe_ratio = (return_- risk_free_rate_yearly)/volatility
@@ -139,6 +143,7 @@ class Stock:
         """
         returns a performance report with the below KPIs
         """
+
 
         data = {}
         data["Ticker"] = self.ticker
@@ -174,6 +179,7 @@ class Stock:
         adds the suffix defined by the stocks ticker to
         the existing columns of the data attribute
         """
+
         return self.data.add_suffix(f"_{self.ticker}")
 
 
@@ -196,6 +202,7 @@ class Portfolio(Stock):
         returns both the daily return and the Adj Close for the
         chosen Benchmark
         """
+
         df = yfinance.download(tickers = self.benchmark_ticker, start = self.start, end = self.end, interval = "1d")[['Adj Close']]
         df['DailyReturn'] = df["Adj Close"].pct_change()
         df = df.add_suffix(f"_{self.benchmark_ticker}")
@@ -224,6 +231,7 @@ class Portfolio(Stock):
         index = sum(weight*adj_close) where weight is the percentage of the amount allocated to that stock
         as well as the daily returns
         """
+
         portfolio_index = sum([(stock.amount/self.total_amount) * stock.data["Adj Close"] for stock in self.stocks])
 
         portfolio_index = portfolio_index.to_frame()
@@ -236,6 +244,7 @@ class Portfolio(Stock):
         calculates the Beta coefficient
         portfolio vs benchmark
         """
+
         # retrieve all data and filter
         index_data = self.portfolio_data()
         benchmark_data = self.benchmark_data()
@@ -243,8 +252,6 @@ class Portfolio(Stock):
         data = data.dropna(axis = 0)
         cols = [columns for columns in data.columns if "DailyReturn" in columns]
         data = data[cols]
-
-        print(data.columns)
 
         market_variance = data[f"DailyReturn_{self.benchmark_ticker}"].var() * 252
         cov = data.cov() * 252
@@ -258,6 +265,8 @@ class Portfolio(Stock):
         Creates a df with Adj Close and DailyReturn info for the Portfolio,
          Stocks and Benchmark
         """
+
+
         stock_data = self.stock_data()
         index_data = self.portfolio_data()
         benchmark_data = self.benchmark_data()
@@ -273,6 +282,7 @@ class Portfolio(Stock):
         """
         Returns a linechart with normalized Adj Close Prices:
         """
+
         # retrieve all data and filter
         df = self.all_data()
         cols = df.columns
@@ -304,6 +314,7 @@ class Portfolio(Stock):
         """
         minimize the sharpe ratio: return/risk
         """
+
         # Note -1* because we need to minimize this
         # Its the same as maximizing the positive sharpe ratio
 
@@ -354,9 +365,6 @@ class Portfolio(Stock):
         mc_sharpe_ratios = np.array(mc_portfolio_returns) / np.array(mc_portfolio_vol)
 
 
-
-        # 18.3 CREATE a df
-
         mc_weights_rd = [np.round(weight, 3) for weight in mc_weights]
         mc_portfolio_returns_rd = [round(returns,3) for returns in mc_portfolio_returns]
         mc_portfolio_vol_rd = [round(vol,3) for vol in mc_portfolio_vol]
@@ -379,7 +387,6 @@ class Portfolio(Stock):
         plt.show()
 
         # Optimal Weighting through Minimization Search
-
         bounds = tuple((0,1) for n in range(N))
 
         # Starting Guess
@@ -395,11 +402,11 @@ class Portfolio(Stock):
                 "Sharpe Ratio": (-1* res.fun),
                 "MC_Simulations" : sharpe_df}
 
-
     def graph_returns(self):
         """
         returns a histogram with daily returns
         """
+
         df = self.all_data()
         cols = df.columns
         cols = [columns for columns in cols if "DailyReturn" in columns]
@@ -413,7 +420,6 @@ class Portfolio(Stock):
 
         benchmark_data = self.benchmark_data()
         portfolio_data = self.portfolio_data()
-        print(portfolio_data)
 
         cols_benchmark = benchmark_data.columns
         cols_portfolio = portfolio_data.columns
@@ -439,7 +445,6 @@ class Portfolio(Stock):
         data["Period end"] = self.end
         data["Mean daily return %"] = self.returns(daily_return_portfolio["DailyReturn"],  False)
         data["Mean yearly return %"] = self.returns(daily_return_portfolio["DailyReturn"], True)
-        print(adj_close_portfolio)
         data["ROI %"] = self.roi(adj_close_portfolio["Adj Close"])
         data["Profit"] = self.profit(self.total_amount, adj_close_portfolio["Adj Close"])
         data["Daily Risk"] = self.risk(daily_return_portfolio["DailyReturn"], False)
@@ -456,8 +461,6 @@ class Portfolio(Stock):
 
         df = pd.DataFrame([data]).transpose()
         df = df.rename(columns = {0:"Portfolio"})
-
-        print(df)
 
         ## Second df (Benchmark data)
         data = {}
