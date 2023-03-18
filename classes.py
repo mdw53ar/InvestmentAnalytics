@@ -198,7 +198,7 @@ class Portfolio(Stock):
         """
         df = yfinance.download(tickers = self.benchmark_ticker, start = self.start, end = self.end, interval = "1d")[['Adj Close']]
         df['DailyReturn'] = df["Adj Close"].pct_change()
-        df = df.add_suffix(f"_Benchmark_{self.benchmark_ticker}")
+        df = df.add_suffix(f"_{self.benchmark_ticker}")
         df = df.dropna(axis = 0)
         return df
 
@@ -225,10 +225,33 @@ class Portfolio(Stock):
         as well as the daily returns
         """
         portfolio_index = sum([(stock.amount/self.total_amount) * stock.data["Adj Close"] for stock in self.stocks])
+
         portfolio_index = portfolio_index.to_frame()
         portfolio_index["DailyReturn"] = portfolio_index["Adj Close"].pct_change()
         portfolio_index = portfolio_index.dropna(axis = 0)
         return portfolio_index
+
+    def beta(self):
+        """
+        calculates the Beta coefficient
+        portfolio vs benchmark
+        """
+        # retrieve all data and filter
+        index_data = self.portfolio_data()
+        benchmark_data = self.benchmark_data()
+        data = pd.concat([index_data, benchmark_data], axis = 1)
+        data = data.dropna(axis = 0)
+        cols = [columns for columns in data.columns if "DailyReturn" in columns]
+        data = data[cols]
+
+        print(data.columns)
+
+        market_variance = data[f"DailyReturn_{self.benchmark_ticker}"].var() * 252
+        cov = data.cov() * 252
+        beta = cov.iloc[0, 1] / market_variance
+
+        return beta
+
 
     def all_data(self, export = False):
         """
@@ -260,7 +283,7 @@ class Portfolio(Stock):
         df = 100 * df/df.iloc[0]
 
         df.plot(title = "Normalized Close Prices", xlabel = "Date", ylabel = "Adjusted Close Price")
-        plt.savefig('NormalizedPlot.png', bbox_inches='tight')
+        plt.savefig('ClosingPrices.png', bbox_inches='tight')
 
     @staticmethod
     def gen_weights(N):
@@ -327,7 +350,25 @@ class Portfolio(Stock):
             mc_portfolio_returns.append(self.calculate_returns(weights, log_rets))
             mc_portfolio_vol.append(self.calculate_volatility(weights, log_rets_cov))
 
+
         mc_sharpe_ratios = np.array(mc_portfolio_returns) / np.array(mc_portfolio_vol)
+
+
+
+        # 18.3 CREATE a df
+
+        mc_weights_rd = [np.round(weight, 3) for weight in mc_weights]
+        mc_portfolio_returns_rd = [round(returns,3) for returns in mc_portfolio_returns]
+        mc_portfolio_vol_rd = [round(vol,3) for vol in mc_portfolio_vol]
+        mc_sharpe_ratios_rd = np.round(mc_sharpe_ratios, 3)
+
+        data = {"Weights" : mc_weights_rd,
+                "Return" : mc_portfolio_returns_rd,
+                "Risk" : mc_portfolio_vol_rd,
+                "Sharpe Ratio" : mc_sharpe_ratios_rd}
+
+
+        sharpe_df = pd.DataFrame(data = data).sort_values(by='Sharpe Ratio',ascending=False)
 
         plt.figure(dpi=100, figsize=(10, 5))
         plt.scatter(mc_portfolio_vol, mc_portfolio_returns, c=mc_sharpe_ratios)
@@ -351,7 +392,8 @@ class Portfolio(Stock):
         res = minimize(fun = self.function_to_minimize, x0=equal_weights, bounds=bounds, constraints=sum_constraint)
 
         return {"Optimal portfolio weights" : res.x,
-                "Sharpe Ratio": (-1* res.fun)}
+                "Sharpe Ratio": (-1* res.fun),
+                "MC_Simulations" : sharpe_df}
 
 
     def graph_returns(self):
@@ -363,36 +405,78 @@ class Portfolio(Stock):
         cols = [columns for columns in cols if "DailyReturn" in columns]
         df = df[cols]
 
-        df.plot(kind = 'hist', title = "Time Series", xlabel = "Date", ylabel = "Daily Returns", alpha=0.7 )
-        plt.savefig('Returns Histogram.png', bbox_inches='tight')
+        df.hist(figsize=(16, 20), bins=50, xlabelsize=8, ylabelsize=8);
+        plt.savefig('ReturnsHistogram.png', bbox_inches='tight')
         plt.show()
 
+    def performance_report(self, export_report = True):
 
-    def performance_report(self, amount,  daily_return, adj_close, export_report = True):
+        benchmark_data = self.benchmark_data()
+        portfolio_data = self.portfolio_data()
+        print(portfolio_data)
 
+        cols_benchmark = benchmark_data.columns
+        cols_portfolio = portfolio_data.columns
+
+        cols_benchmark_daily_return = [col for col in cols_benchmark if "DailyReturn" in col]
+        cols_benchmark_adj_close = [col for col in cols_benchmark if "Adj Close" in col]
+
+        cols_portfolio_daily_return = [col for col in cols_portfolio if "DailyReturn" in col]
+        cols_portfolio_adj_close = [col for col in cols_portfolio if "Adj Close" in col]
+
+        daily_return_benchmark = benchmark_data[cols_benchmark_daily_return]
+        adj_close_benchmark = benchmark_data[cols_benchmark_adj_close]
+
+        daily_return_portfolio = portfolio_data[cols_portfolio_daily_return]
+        adj_close_portfolio = portfolio_data[cols_portfolio_adj_close]
+
+        ## First df (Portfolio data)
         data = {}
         data["Ticker"] = ','.join([str(stock.ticker) for stock in self.stocks])
         data["Amount"] = ','.join([str(stock.amount) for stock in self.stocks])
         data["Total Amount"] = self.total_amount
         data["Period begin"] = self.start
         data["Period end"] = self.end
-        data["Mean daily return %"] = self.returns(daily_return,  False)
-        data["Mean yearly return %"] = self.returns(daily_return, True)
-        data["ROI %"] = self.roi(adj_close)
-        data["Profit"] = self.profit(amount, adj_close)
-        data["Daily Risk"] = self.risk(daily_return, False)
-        data["Yearly Risk"] = self.risk(daily_return, True)
-        data["Sharpe Ratio"] = self.sharpe_ratio(daily_return,  0)
+        data["Mean daily return %"] = self.returns(daily_return_portfolio["DailyReturn"],  False)
+        data["Mean yearly return %"] = self.returns(daily_return_portfolio["DailyReturn"], True)
+        print(adj_close_portfolio)
+        data["ROI %"] = self.roi(adj_close_portfolio["Adj Close"])
+        data["Profit"] = self.profit(self.total_amount, adj_close_portfolio["Adj Close"])
+        data["Daily Risk"] = self.risk(daily_return_portfolio["DailyReturn"], False)
+        data["Yearly Risk"] = self.risk(daily_return_portfolio["DailyReturn"], True)
+        data["Sharpe Ratio"] = round(self.sharpe_ratio(daily_return_portfolio["DailyReturn"],  0), 3)
+        data["Beta"] = round(self.beta(),3)
 
-        markowitz_results = self.markowitz_frontier_graph() # returns a dict {key1:list1, key2:number]
+        markowitz_results = self.markowitz_frontier_graph() # returns a dict {key1:list1, key2:number, key3:df}
         optimal_weights = [round(num, 4) for num in markowitz_results["Optimal portfolio weights"]]
         optimal_sharpe = round(markowitz_results["Sharpe Ratio"],4)
+        sharpe_df = markowitz_results["MC_Simulations"]
         data["Optimal Weights"] = optimal_weights
         data["Optimal Sharpe Ratio"] = optimal_sharpe
 
         df = pd.DataFrame([data]).transpose()
-        df = df.rename(columns = {0:""})
-        print("Returning portfolio performance report")
+        df = df.rename(columns = {0:"Portfolio"})
+
+        print(df)
+
+        ## Second df (Benchmark data)
+        data = {}
+        data["Ticker"] = self.benchmark_ticker
+        data["Amount"] = self.total_amount
+        data["Total Amount"] = self.total_amount
+        data["Period begin"] = self.start
+        data["Period end"] = self.end
+        data["Mean daily return %"] = self.returns(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"],  False)
+        data["Mean yearly return %"] = self.returns(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"], True)
+        data["ROI %"] = self.roi(adj_close_benchmark[f"Adj Close_{self.benchmark_ticker}"])
+        data["Profit"] = self.profit(self.total_amount, adj_close_benchmark[f"Adj Close_{self.benchmark_ticker}"])
+        data["Daily Risk"] = self.risk(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"], False)
+        data["Yearly Risk"] = self.risk(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"], True)
+        data["Sharpe Ratio"] = round(self.sharpe_ratio(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"], 0), 3)
+        df2 = pd.DataFrame([data]).transpose()
+        df2 = df2.rename(columns = {0:"Benchmark"})
+
+        df_merge = pd.concat([df,df2], axis = 1)
 
         if export_report:
 
@@ -400,18 +484,28 @@ class Portfolio(Stock):
             filename = "PortfolioPerformanceReport.xlsx"
             writer = pd.ExcelWriter(filename, engine='xlsxwriter')
 
+            # Export all data
+            self.all_data().to_excel(writer, sheet_name='Time Series Data')
+
             # Export portfolio analysis data
-            df.to_excel(writer, sheet_name='Portfolio Overview')
+            df_merge.to_excel(writer, sheet_name='Portfolio Overview')
 
             # Export Adj Close Prices - Normalization to 100 chart
             df_empty = pd.DataFrame()
             df_empty.to_excel(writer, sheet_name='Adjusted Close Prices')
             worksheet = writer.sheets['Adjusted Close Prices']
-            worksheet.insert_image('B2', 'NormalizedPlot.png')
+            self.normalized_graph()
+            worksheet.insert_image('B2', 'ClosingPrices.png')
 
-            # Export Sharpe Ratio Chart
+            # Export Daily Returns Histogram
             df_empty = pd.DataFrame()
-            df_empty.to_excel(writer, sheet_name='Monte Carlo Simulation')
+            df_empty.to_excel(writer, sheet_name = 'Daily Returns Histogram')
+            worksheet = writer.sheets['Daily Returns Histogram']
+            self.graph_returns()
+            worksheet.insert_image('B2', 'ReturnsHistogram.png')
+
+            # Export Sharpe Ratio df and chart
+            sharpe_df.to_excel(writer, sheet_name='Monte Carlo Simulation', startcol=15, startrow=2)
             worksheet = writer.sheets['Monte Carlo Simulation']
             worksheet.insert_image('B2', 'MC_Sharpe.png')
 
