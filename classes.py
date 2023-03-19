@@ -68,7 +68,7 @@ class Stock:
     def risk(self, daily_return, yearly=True):
         """
         returns the risk measured as the standard deviation of the returns
-        yearly or daily returns
+        yearly or daily returns in %
         """
 
         daily_std = round(100 * daily_return.std(), 3)
@@ -282,7 +282,7 @@ class Portfolio(Stock):
     def markowitz_frontier_graph(self):
         """
         returns optimal portfolio weights in terms of Sharpe Ratio as
-        well as a png with MC Simulation for 6000 random weights
+        well as a png with MC Simulation for 10000 random weights
         and their risk/return
         """
 
@@ -303,7 +303,7 @@ class Portfolio(Stock):
         mc_portfolio_vol = []
         mc_weights = []
         N = len(df.columns)
-        for sim in range(6000):
+        for sim in range(10000):
             # This may take a while!
             weights = self.gen_weights(N)
             mc_weights.append(weights)
@@ -331,6 +331,7 @@ class Portfolio(Stock):
         plt.scatter(mc_portfolio_vol, mc_portfolio_returns, c=mc_sharpe_ratios)
         plt.ylabel('Expected Returns')
         plt.xlabel('Expected Volatility')
+        plt.title("Sharpe Ratio - Monte Carlo Simulation (N=10000)")
         plt.colorbar(label="Sharpe Ratio")
         plt.savefig('MC_Sharpe.png', bbox_inches='tight')
         plt.show()
@@ -396,8 +397,8 @@ class Portfolio(Stock):
         data["Mean yearly return %"] = self.returns(daily_return_portfolio["DailyReturn"], True)
         data["ROI %"] = self.roi(adj_close_portfolio["Adj Close"])
         data["Profit"] = self.profit(self.total_amount, adj_close_portfolio["Adj Close"])
-        data["Daily Risk"] = self.risk(daily_return_portfolio["DailyReturn"], False)
-        data["Yearly Risk"] = self.risk(daily_return_portfolio["DailyReturn"], True)
+        data["Daily Risk %"] = self.risk(daily_return_portfolio["DailyReturn"], False)
+        data["Yearly Risk %"] = self.risk(daily_return_portfolio["DailyReturn"], True)
         data["Sharpe Ratio"] = round(self.sharpe_ratio(daily_return_portfolio["DailyReturn"],  0), 3)
         data["Beta"] = round(self.beta(),3)
 
@@ -422,8 +423,8 @@ class Portfolio(Stock):
         data["Mean yearly return %"] = self.returns(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"], True)
         data["ROI %"] = self.roi(adj_close_benchmark[f"Adj Close_{self.benchmark_ticker}"])
         data["Profit"] = self.profit(self.total_amount, adj_close_benchmark[f"Adj Close_{self.benchmark_ticker}"])
-        data["Daily Risk"] = self.risk(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"], False)
-        data["Yearly Risk"] = self.risk(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"], True)
+        data["Daily Risk %"] = self.risk(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"], False)
+        data["Yearly Risk %"] = self.risk(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"], True)
         data["Sharpe Ratio"] = round(self.sharpe_ratio(daily_return_benchmark[f"DailyReturn_{self.benchmark_ticker}"], 0), 3)
         df2 = pd.DataFrame([data]).transpose()
         df2 = df2.rename(columns = {0:"Benchmark"})
@@ -457,7 +458,7 @@ class Portfolio(Stock):
             worksheet.insert_image('B2', 'ReturnsHistogram.png')
 
             # Export Sharpe Ratio df and chart
-            sharpe_df.to_excel(writer, sheet_name='Monte Carlo Simulation', startcol=15, startrow=2)
+            sharpe_df.to_excel(writer, sheet_name='Monte Carlo Simulation', startcol=15, startrow=2, index=False)
             worksheet = writer.sheets['Monte Carlo Simulation']
             worksheet.insert_image('B2', 'MC_Sharpe.png')
 

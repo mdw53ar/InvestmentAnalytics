@@ -1,7 +1,17 @@
 **Investment Analytics**
 
 
-This repository is creates an Excel report analyzing a portfolio comprised by a given set of stocks.
+This repository is creates an Excel report analyzing a portfolio comprised by a given set of stocks. Among others, following metrics are analyzed:
+- Mean return (yearly and daily)
+- ROI 
+- Profit
+- Risk (yearly and daily)
+- Sharpe Ratio
+- Beta coefficient
+- Weights that maximizes the Sharpe Ratio
+- Normalized close prices
+- Daily returns
+
 The code resorts to the Yfinance API to retrieve the data. Hence the tickers should match the tickers form Yahoo Finance.
 
 To generate a report perform the following steps:
