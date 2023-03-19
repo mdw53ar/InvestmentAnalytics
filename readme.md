@@ -30,7 +30,7 @@ To generate a report perform the following steps:
 
 The benchmark is the S&P 500 index.
 
-4) Finally, call the _performance_report method_. It will generate an Excel file _PortfolioPerformanceReportx.xlsx_
+4) Finally, call the _performance_report_ method. It will generate an Excel file _PortfolioPerformanceReportx.xlsx_
 
 `portfolio.performance_report()`
 
