@@ -3,7 +3,7 @@ from datetime import datetime
 
 class StringValidation:
     """
-    class validating of the value passed is a string
+    class validating if the value passed is a string
     """
 
     def __set_name__(self, owner, name):
@@ -26,7 +26,7 @@ class StringValidation:
 class LetterValidation(StringValidation):
     """
     class validating if the value passed is a string and
-    only contains letter. Inherits from StringValidation and adds one criteria to the setter/validation
+    only contains letters. Inherits from StringValidation and adds one criterion to the setter/validation
     """
 
     def __set__(self, instance, value):
