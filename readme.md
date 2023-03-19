@@ -34,6 +34,6 @@ The benchmark is the S&P 500 index.
 
 `portfolio.performance_report()`
 
-It will generate an Excel file _PortfolioPerformanceReportx.xlsx
+It will generate the file _PortfolioPerformanceReportx.xlsx_
 
 **Note**: In the generated performance report, metrics with no suffix refer to the portfolio. In above example, Adj_Close refers to the adjusted close price of the portfolio. Conversely, Adj_Close_MSFT refers to the adjusted closed price of Microsoft
