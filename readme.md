@@ -36,4 +36,4 @@ The benchmark is the S&P 500 index.
 
 It will generate the file _PortfolioPerformanceReportx.xlsx_
 
-**Note**: In the generated performance report, metrics with no suffix refer to the portfolio. In above example, _Adj_Close_ refers to the adjusted close price of the portfolio. Conversely, _Adj_Close_MSFT_ refers to the adjusted closed price of Microsoft
+**Note**: In the generated performance report, metrics with no suffix refer to the portfolio. In above example, _Adj_Close_ refers to the adjusted close price of the portfolio. Conversely, _Adj_Close_MSFT_ refers to the adjusted closed price of Microsoft.
