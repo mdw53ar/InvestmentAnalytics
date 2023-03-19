@@ -5,59 +5,7 @@ import yfinance as yf
 from matplotlib import pyplot as plt
 from scipy.optimize import minimize
 
-
-class StringValidation:
-    """
-    class validating of the value passed is a string
-    """
-
-    def __set_name__(self, owner, name):
-        self.name = name
-
-    def __set__(self, instance, value):
-
-        if not isinstance(value, str):
-            raise AttributeError(f"Should be a string. Value passed: {value}")
-
-        instance.__dict__[self.name] = value
-
-    def __get__(self, instance, owner):
-        if instance is None:
-            return self
-
-        return instance.__dict__[self.name]
-
-
-class LetterValidation(StringValidation):
-    """
-    class validating if the value passed is a string and
-    only contains letter. Inherits from StringValidation and adds one criteria to the setter/validation
-    """
-
-    def __set__(self, instance, value):
-        value_strip = str(value).replace(" ", "")
-
-        if not isinstance(value, str):
-            raise AttributeError(f"Should be a string. Value passed: {value}")
-        if not value_strip.isalpha() :
-            raise AttributeError(f"Should only contain letters. Value passed: {value}")
-        instance.__dict__[self.name] = value
-
-
-class Investor:
-    """
-    class containing information about an investor
-    """
-
-    name = LetterValidation()
-    last_name = LetterValidation()
-
-    def __init__(self, name, last_name):
-        self.name = name
-        self.last_name = last_name
-
-    def __repr__(self):
-        return f"{self.__class__.__name__} = (name = '{self.name}', last_name = '{self.last_name}')"
+from InputValidation import StringValidation, LetterValidation, NumericValidation, DateValidation
 
 
 class Stock:
@@ -68,6 +16,9 @@ class Stock:
 
     ticker = StringValidation()
     name_stock = LetterValidation()
+    amount = NumericValidation()
+    start = DateValidation()
+    end = DateValidation()
 
     def __init__(self, ticker, name_stock, amount, start, end):
         self.ticker = ticker
@@ -143,7 +94,6 @@ class Stock:
         """
         returns a performance report with the below KPIs
         """
-
 
         data = {}
         data["Ticker"] = self.ticker
@@ -265,7 +215,6 @@ class Portfolio(Stock):
         Creates a df with Adj Close and DailyReturn info for the Portfolio,
          Stocks and Benchmark
         """
-
 
         stock_data = self.stock_data()
         index_data = self.portfolio_data()
