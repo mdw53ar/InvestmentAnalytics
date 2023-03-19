@@ -28,9 +28,9 @@ To generate a report perform the following steps:
 
 `portfolio = Portfolio([stock1, stock2, stock3, stock4, stock5], start, end, "^GSPC")`
 
-The benchmark is the S&P 500
+The benchmark is the S&P 500 index.
 
-4) Finally call the performance_report method. It will generate an Excel file _PortfolioPerformanceReportx.xlsx_
+4) Finally, call the performance_report method. It will generate an Excel file _PortfolioPerformanceReportx.xlsx_
 
 `portfolio.performance_report()`
 
