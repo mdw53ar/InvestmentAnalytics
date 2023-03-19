@@ -24,7 +24,7 @@ To generate a report perform the following steps:
 
 `stock5 = Stock("CS", "Credit Suisse", 1000, start, end)`
 
-3) Define an instance of the Portfolio object by passing a list of stock instance objects, a date range and a benchmark ticker:
+3) Define an instance of the Portfolio object by passing a list of stock instance objects, a start and end range, as well as a benchmark ticker:
 
 `portfolio = Portfolio([stock1, stock2, stock3, stock4, stock5], start, end, "^GSPC")`
 
