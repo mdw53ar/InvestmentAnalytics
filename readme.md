@@ -30,8 +30,10 @@ To generate a report perform the following steps:
 
 The benchmark is the S&P 500 index.
 
-4) Finally, call the _performance_report_ method. It will generate an Excel file _PortfolioPerformanceReportx.xlsx_
+4) Finally, call the _performance_report_ method:
 
 `portfolio.performance_report()`
+
+It will generate an Excel file _PortfolioPerformanceReportx.xlsx
 
 **Note**: In the generated performance report, metrics with no suffix refer to the portfolio. In above example, Adj_Close refers to the adjusted close price of the portfolio. Conversely, Adj_Close_MSFT refers to the adjusted closed price of Microsoft
