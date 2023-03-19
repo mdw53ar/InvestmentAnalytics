@@ -90,40 +90,6 @@ class Stock:
         sharpe_ratio = (return_- risk_free_rate_yearly)/volatility
         return sharpe_ratio
 
-    def performance_report(self,adj_close, daily_return, export_report = False):
-        """
-        returns a performance report with the below KPIs
-        """
-
-        data = {}
-        data["Ticker"] = self.ticker
-        data["Amount"] = self.amount
-        data["Shares"] = self.shares
-        data["Period begin"] = self.start
-        data["Period end"] = self.end
-        data["Mean daily return %"] = self.returns(daily_return, yearly = False)
-        data["Mean yearly return %"] = self.returns(daily_return, yearly = True)
-        data["ROI"] = self.roi(adj_close)
-        data["Profit"] = self.profit(self.amount, adj_close)
-        data["Daily Risk"] = self.risk(daily_return, yearly = False)
-        data["Yearly Risk"] = self.risk(daily_return, yearly = True)
-        data["Sharpe Ratio"] = self.sharpe_ratio(daily_return, risk_free_rate_yearly = 0)
-        df = pd.DataFrame.from_dict(data, orient = 'index')
-        df = df.rename(columns = {0:""})
-        print("Returning performance report")
-
-        if export_report:
-            filename = f"{self.ticker}_PerformanceReport v2.xlsx"
-            df.to_excel(filename)
-
-        return df
-
-    def daily_returns_table(self):
-        df = self.data.copy()
-        df[f"DailyReturn"] = df["Adj Close"].pct_change()
-        df = df.dropna(axis = 0)
-        return df
-
     def add_suffix_on_columns(self):
         """
         adds the suffix defined by the stocks ticker to
@@ -227,6 +193,20 @@ class Portfolio(Stock):
 
         return all_data
 
+    def graph_returns(self):
+        """
+        returns a histogram with daily returns
+        """
+
+        df = self.all_data()
+        cols = df.columns
+        cols = [columns for columns in cols if "DailyReturn" in columns]
+        df = df[cols]
+
+        df.hist(figsize=(16, 20), bins=50, xlabelsize=8, ylabelsize=8);
+        plt.savefig('ReturnsHistogram.png', bbox_inches='tight')
+        plt.show()
+
     def normalized_graph(self):
         """
         Returns a linechart with normalized Adj Close Prices:
@@ -246,22 +226,31 @@ class Portfolio(Stock):
 
     @staticmethod
     def gen_weights(N):
+        """
+        generates N-random weights
+        """
         weights = np.random.random(N)
         return weights / np.sum(weights)
 
     @staticmethod
     def calculate_returns(weights, log_rets):
+        """
+        calculates the annualized log-returns
+        """
         return np.sum(log_rets.mean() * weights) * 252  # Annualized Log-Return
 
     @staticmethod
     def calculate_volatility(weights, log_rets_cov):
+        """
+        calculates the annualized risk of the log returns
+        """
         annualized_cov = np.dot(log_rets_cov * 252, weights)
         vol = np.dot(weights.transpose(), annualized_cov)
         return np.sqrt(vol)
 
     def function_to_minimize(self, weights):
         """
-        minimize the sharpe ratio: return/risk
+        minimizes the sharpe ratio: return/risk
         """
 
         # Note -1* because we need to minimize this
@@ -352,21 +341,10 @@ class Portfolio(Stock):
                 "Sharpe Ratio": (-1* res.fun),
                 "MC_Simulations" : sharpe_df}
 
-    def graph_returns(self):
-        """
-        returns a histogram with daily returns
-        """
-
-        df = self.all_data()
-        cols = df.columns
-        cols = [columns for columns in cols if "DailyReturn" in columns]
-        df = df[cols]
-
-        df.hist(figsize=(16, 20), bins=50, xlabelsize=8, ylabelsize=8);
-        plt.savefig('ReturnsHistogram.png', bbox_inches='tight')
-        plt.show()
-
     def performance_report(self, export_report = True):
+        """
+        generates an Excel-report analyzing the portfolio and its benchmark
+        """
 
         benchmark_data = self.benchmark_data()
         portfolio_data = self.portfolio_data()
