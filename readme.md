@@ -12,7 +12,7 @@ To generate a report perform the following steps:
 
 `end = "2023-03-18"`
 
-2) Define instances ob the Stock object containing information about the ticker, name and date range:
+2) Define instances of the Stock object containing information about the ticker, name, start and end date:
 
 `stock1 = Stock("MSFT", "Microsoft", 1000, start, end)`
 
@@ -31,3 +31,5 @@ To generate a report perform the following steps:
 4) Finally call the performance_report method. It will generate an Excel file _PortfolioPerformanceReportx.xlsx_
 
 `portfolio.performance_report()`
+
+**Note**: In the generated performance report, metrics with no suffix refer to the portfolio. In above example, Adj_Close refers to the adjusted close price of the portfolio. Conversely, Adj_Close_MSFT refers to the adjusted closed price of Microsoft
