@@ -24,9 +24,11 @@ To generate a report perform the following steps:
 
 `stock5 = Stock("CS", "Credit Suisse", 1000, start, end)`
 
-3) Define an instance of the Portfolio object by passing a list of stock instance objects, a date range and a Benchmark ticker:
+3) Define an instance of the Portfolio object by passing a list of stock instance objects, a date range and a benchmark ticker:
 
 `portfolio = Portfolio([stock1, stock2, stock3, stock4, stock5], start, end, "^GSPC")`
+
+The benchmark is the S&P 500
 
 4) Finally call the performance_report method. It will generate an Excel file _PortfolioPerformanceReportx.xlsx_
 
